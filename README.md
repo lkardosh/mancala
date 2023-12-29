@@ -1,4 +1,4 @@
-# Ultimate Mancala. A very very very scary game. 
+# Ultimate Mancala.
 
 Board game Mancala with a workable GUI.
 

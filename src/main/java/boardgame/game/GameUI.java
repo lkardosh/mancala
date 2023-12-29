@@ -1,6 +1,7 @@
 package game;
 import mancala.UserProfile;
 import mancala.Saver;
+import java.io.File;
 import mancala.Player;
 import mancala.KalahRules;
 import java.io.IOException;
@@ -21,6 +22,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.BoxLayout;
 import java.awt.Container;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -42,7 +45,8 @@ public class GameUI extends JFrame {
    private JLabel storeLabel2;
    private static final int WIDTH = 400;
    private static final int HEIGHT = 400;
-
+   String player1Name;
+   String player2Name;
 
    public GameUI() {
        super("Mancala Game");
@@ -68,8 +72,8 @@ public class GameUI extends JFrame {
            return; // Exiting the application if the user canceled
        }
       
-       final String player1Name = JOptionPane.showInputDialog(this, "Enter Player 1's name:");
-       final String player2Name = JOptionPane.showInputDialog(this, "Enter Player 2's name:");
+        player1Name = JOptionPane.showInputDialog(this, "Enter Player 1's name:");
+        player2Name = JOptionPane.showInputDialog(this, "Enter Player 2's name:");
 
        final UserProfile player1Profile = new UserProfile(player1Name, 0, 0, 0, 0);
        final UserProfile player2Profile = new UserProfile(player2Name, 0, 0, 0, 0);
@@ -99,7 +103,6 @@ public class GameUI extends JFrame {
        mancalaGame = new MancalaGame(theGame);
        mancalaGame.setPlayers(player1, player2);
    }
-
 
    private void addMenuBar() {
        final JMenuBar menuBar = new JMenuBar();
@@ -324,14 +327,27 @@ public class GameUI extends JFrame {
    }
 
    private void loadSavedGame() {
+
         try {
-            final String fileName = JOptionPane.showInputDialog(this, "Enter the file name to load the game:");
-            final MancalaGame loadedGame = (MancalaGame) Saver.loadObject(fileName);
-            mancalaGame = loadedGame;
-            updateLabels(); 
+            JFileChooser fileChooser = new JFileChooser("assets/");
+            int result = fileChooser.showOpenDialog(this);
+    
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                String fileName = selectedFile.getName();
+    
+                final MancalaGame loadedGame = (MancalaGame) Saver.loadObject(fileName);
+                mancalaGame = loadedGame;
+                player1 = mancalaGame.getPlayers().get(0);
+                player2 = mancalaGame.getPlayers().get(1);
+                updateLabels();
+            } else {
+                JOptionPane.showMessageDialog(this, "Game loading canceled.");
+            }
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Exception Occured");
+            JOptionPane.showMessageDialog(this, "Error loading game.");
         }
+        
     }
 
     private void saveProfile() {
@@ -347,16 +363,34 @@ public class GameUI extends JFrame {
 
    
     private void loadSavedProfile() {
+
+        final Player currentPlayer = mancalaGame.getCurrentPlayer();
         try {
-            final String fileName = JOptionPane.showInputDialog(this, "Enter the file name to load the profile:");
-            final Player currentPlayer = mancalaGame.getCurrentPlayer();
-            UserProfile loadedProfile = (UserProfile) Saver.loadObject(fileName);
-            currentPlayer.setProfile(loadedProfile);
-            JOptionPane.showMessageDialog(this, "User profile loaded successfully.");
-            updateLabels();
+            JFileChooser fileChooser = new JFileChooser("assets/");
+            int result = fileChooser.showOpenDialog(this);
+    
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                String fileName = selectedFile.getName();
+
+                UserProfile loadedProfile = (UserProfile) Saver.loadObject(fileName);
+                currentPlayer.setProfile(loadedProfile);
+
+                if (currentPlayer == player1) {
+                    player1Name = currentPlayer.getProfile().getName();
+                } else if (currentPlayer == player2) {
+                    player2Name = currentPlayer.getProfile().getName();
+                }
+    
+                JOptionPane.showMessageDialog(this, "User profile loaded successfully.");
+                updateLabels();
+            } else {
+                JOptionPane.showMessageDialog(this, "Profile loading canceled.");
+            }
         } catch (IOException | ClassNotFoundException e) {
             JOptionPane.showMessageDialog(this, "Error loading user profile.");
         }
+        
     }
 
    public static void main(String[] args) {
